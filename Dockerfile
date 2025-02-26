@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     sudo \
     python3 \
-    python3-pip
+    python3-pip \
+    curl
 
 RUN git clone https://github.com/erlang/otp.git && \
     cd otp && \
