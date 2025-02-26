@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ubuntu:22.04
+FROM ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -8,10 +8,8 @@ RUN apt-get update && apt-get install -y \
     ncurses-dev \
     libssl-dev \
     sudo \
-    python3 \
-    python3-pip \
-    curl \ 
-    ninja-build
+    curl \
+    ca-certificates
 
 RUN git clone https://github.com/erlang/otp.git && \
     cd otp && \
@@ -25,15 +23,14 @@ RUN git clone https://github.com/erlang/rebar3.git && \
     ./bootstrap && \
     sudo mv rebar3 /usr/local/bin/
 
-RUN git clone https://github.com/rust-lang/rust.git && \
-    cd rust && \
-    ./configure && \
-    make && \
-    sudo make install
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-COPY . /app
+WORKDIR /app
 
-RUN cd /app && \
+COPY . .
+
+RUN rebar3 clean && \
     rebar3 compile
 
 CMD ["/bin/bash"]
