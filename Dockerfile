@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
     sudo \
     python3 \
     python3-pip \
-    curl
+    curl \ 
+    ninja-build
 
 RUN git clone https://github.com/erlang/otp.git && \
     cd otp && \
