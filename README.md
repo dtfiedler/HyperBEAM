@@ -54,8 +54,8 @@ You will also need:
 Then you can clone the HyperBEAM source and build it:
 
 ```bash
-git clone https://github.com/ao-labs/hyperbeam.git
-cd hyperbeam
+git clone https://github.com/permaweb/HyperBEAM.git
+cd HyperBEAM
 rebar3 compile
 rebar3 shell # launches the erlang shell with the HyperBEAM module preloaded
 ```
@@ -104,6 +104,17 @@ you could execute the following command:
 
 ```bash
 rebar3 shell --eval "hb:start_mainnet(#{ port => 9001, priv_key_location => 'path/to/my/wallet.key' })."
+```
+
+Node operators can also configure the environment using a `flat@1.0` encoded settings file. An 
+example configuration is found in the `config.flat` file of this repository. The format simply specifies 
+configuration options using HTTP header styling. For example, to set the port for the node and to specify
+whether it should use caching hueristics or always consult its local data store, the `config.flat` would
+be as follows:
+
+```
+port: 1337
+cache-lookup-hueristics: true
 ```
 
 Additionally, if you would like to modify a running node's configuration, you can
