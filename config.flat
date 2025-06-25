@@ -1,2 +1,3 @@
 port: 10000
 mode: debug
+cache-control: always

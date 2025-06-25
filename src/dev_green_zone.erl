@@ -231,17 +231,11 @@ join(M1, M2, Opts) ->
     ?event(green_zone, {join, start}),
     PeerLocation = hb_opts:get(<<"green_zone_peer_location">>, undefined, Opts),
     PeerID = hb_opts:get(<<"green_zone_peer_id">>, undefined, Opts),
-<<<<<<< HEAD
     Identities = hb_opts:get(identities, #{}, Opts),
     HasGreenZoneIdentity = maps:is_key(<<"green-zone">>, Identities),
     ?event(green_zone, {join_peer, PeerLocation, PeerID, HasGreenZoneIdentity}),
     if (not HasGreenZoneIdentity) andalso (PeerLocation =/= undefined) andalso (PeerID =/= undefined) ->
         join_peer(PeerLocation, PeerID, M1, M2, Opts);
-=======
-    ?event(green_zone, {join_peer, PeerLocation, PeerID}),
-    if (PeerLocation =:= undefined) or (PeerID =:= undefined) ->
-        validate_join(M1, M2, hb_cache:ensure_all_loaded(Opts, Opts));
->>>>>>> f550aafb (Revert "Refactor/replace ensure all loaded")
     true ->
         validate_join(M1, M2, hb_cache:ensure_all_loaded(Opts, Opts))
     end.
@@ -457,11 +451,7 @@ join_peer(PeerLocation, PeerID, _M1, _M2, InitOpts) ->
             % Create an committed join request using the wallet.
             Req = hb_cache:ensure_all_loaded(
                 hb_message:commit(MergedReq, Wallet),
-<<<<<<< HEAD
                 InitOpts
-=======
-                Opts
->>>>>>> f550aafb (Revert "Refactor/replace ensure all loaded")
             ),
             ?event({join_req, {explicit, Req}}),
             ?event({verify_res, hb_message:verify(Req)}),
@@ -791,4 +781,3 @@ rsa_wallet_integration_test() ->
     ?assertEqual(PlainText, Decrypted),
     % Verify wallet structure
     ?assertEqual(KeyType, {rsa, 65537}).
-

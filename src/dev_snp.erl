@@ -341,25 +341,27 @@ verify_debug_disabled(Msg) ->
 verify_trusted_software(M1, Msg, NodeOpts) ->
     {ok, IsTrustedSoftware} = execute_is_trusted(M1, Msg, NodeOpts),
     ?event({trusted_software, IsTrustedSoftware}),
-    % Step 5: Verify the measurement against the report's measurement.
-    Args =
-        maps:from_list(
-            lists:map(
-                fun({Key, Val}) -> {binary_to_existing_atom(Key), Val} end,
-                maps:to_list(
-                    maps:with(
-                        lists:map(
-                            fun atom_to_binary/1,
-                            ?COMMITTED_PARAMETERS
-                        ),
-                        hb_cache:ensure_all_loaded(
-                            hb_ao:get(<<"local-hashes">>, Msg, NodeOpts),
-                            NodeOpts
-                        )
-                    )
-                )
-            )
-        ),
+    case IsTrustedSoftware of
+        true -> {ok, true};
+        false -> {error, untrusted_software}
+    end.
+
+%% @doc Verify that the measurement in the SNP report is valid.
+%%
+%% This function validates the SNP measurement by:
+%% 1. Extracting committed parameters from the message
+%% 2. Computing the expected launch digest using those parameters
+%% 3. Comparing the computed digest with the measurement in the report
+%%
+%% @param Msg The normalized SNP message containing local hashes
+%% @param ReportJSON The raw JSON report containing the measurement
+%% @param NodeOpts A map of configuration options
+%% @returns `{ok, true}' if the measurement is valid, or 
+%% `{error, measurement_invalid}' on failure
+-spec verify_measurement(Msg :: map(), ReportJSON :: binary(), 
+    NodeOpts :: map()) -> {ok, true} | {error, measurement_invalid}.
+verify_measurement(Msg, ReportJSON, NodeOpts) ->
+    Args = extract_measurement_args(Msg, NodeOpts),
     ?event({args, { explicit, Args}}),
     {ok, Expected} = dev_snp_nif:compute_launch_digest(Args),
     ExpectedBin = list_to_binary(Expected),
@@ -422,7 +424,6 @@ verify_report_integrity(ReportJSON) ->
         false -> {error, report_signature_invalid}
     end.
 
-<<<<<<< HEAD
 %% @doc Check if the node's debug policy is enabled.
 %%
 %% This function examines the SNP policy field to determine if debug mode
@@ -431,55 +432,6 @@ verify_report_integrity(ReportJSON) ->
 %% @param Report The SNP report containing the policy field
 %% @returns `true' if debug mode is enabled, `false' otherwise
 -spec is_debug(Report :: map()) -> boolean().
-=======
-%% @doc Generate an commitment report and emit it as a message, including all of 
-%% the necessary data to generate the nonce (ephemeral node address + node
-%% message ID), as well as the expected measurement (firmware, kernel, and VMSAs
-%% hashes).
-generate(_M1, _M2, Opts) ->
-    LoadedOpts = hb_cache:ensure_all_loaded(Opts, Opts),
-    ?event({generate_opts, {explicit, LoadedOpts}}),
-    Wallet = hb_opts:get(priv_wallet, no_viable_wallet, LoadedOpts),
-    Address = hb_util:human_id(ar_wallet:to_address(Wallet)),
-    % ?event({snp_wallet, Wallet}),
-    % Remove the `priv*' keys from the options.
-    {ok, PublicNodeMsgID} =
-        dev_message:id(
-                NodeMsg = hb_private:reset(LoadedOpts),
-                #{ <<"committers">> => <<"none">> },
-                LoadedOpts
-            ),
-    RawPublicNodeMsgID = hb_util:native_id(PublicNodeMsgID),
-    ?event({snp_node_msg, NodeMsg}),
-    ?event({snp_node_msg_id, byte_size(RawPublicNodeMsgID)}),
-    ?event({snp_node_msg_id_bin, {explicit, io:format("~p", [RawPublicNodeMsgID])}}),
-    % Generate the commitment report.
-    ?event({snp_address,  byte_size(Address)}),
-    ReportData = generate_nonce(Address, RawPublicNodeMsgID),
-    ?event({snp_report_data, byte_size(ReportData)}),
-    LocalHashes = hd(hb_opts:get(snp_trusted, [#{}], LoadedOpts)),
-    ?event(snp_local_hashes, {explicit, LocalHashes}),
-    {ok, ReportJSON} = dev_snp_nif:generate_attestation_report(ReportData, 1),
-    ?event({snp_report_json, ReportJSON}),
-    ?event(
-        {snp_report_generated,
-            {nonce, ReportData},
-            {report, ReportJSON}
-        }
-    ),
-    ReportMsg = 
-        #{
-            <<"local-hashes">> => LocalHashes,
-            <<"nonce">> => hb_util:encode(ReportData),
-            <<"address">> => Address,
-            <<"node-message">> => NodeMsg,
-            <<"report">> => ReportJSON
-        },
-    ?event({snp_report_msg, ReportMsg}),
-    {ok, ReportMsg}.
-
-%% @doc Ensure that the node's debug policy is disabled.
->>>>>>> f550aafb (Revert "Refactor/replace ensure all loaded")
 is_debug(Report) ->
     (hb_ao:get(<<"policy">>, Report, #{}) band (1 bsl ?DEBUG_FLAG_BIT)) =/= 0.
 
