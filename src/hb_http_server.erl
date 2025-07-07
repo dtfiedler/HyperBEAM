@@ -492,9 +492,14 @@ set_default_opts(Opts) ->
     Store =
         case hb_opts:get(store, no_store, TempOpts) of
             no_store ->
-                TestDir = <<"cache-TEST/run-fs-", (integer_to_binary(Port))/binary>>,
-                filelib:ensure_dir(binary_to_list(TestDir)),
-                #{ <<"store-module">> => hb_store_fs, <<"name">> => TestDir };
+                case hb_opts:get(redis_url, undefined, TempOpts) of
+                    undefined ->
+                        TestDir = <<"cache-TEST/run-fs-", (integer_to_binary(Port))/binary>>,
+                        filelib:ensure_dir(binary_to_list(TestDir)),
+                        #{ <<"store-module">> => hb_store_fs, <<"name">> => TestDir };
+                    URL ->
+                        #{ <<"store-module">> => hb_store_redis, <<"url">> => hb_util:bin(URL) }
+                end;
             PassedStore -> PassedStore
         end,
     ?event({set_default_opts,

@@ -137,6 +137,7 @@ The simplest way to configure HyperBEAM is using the `config.flat` file:
 ```
 port: 10000
 priv_key_location: /path/to/wallet.json
+% redis_url: redis://localhost:6379
 ```
 
 3. Start HyperBEAM with `rebar3 shell`

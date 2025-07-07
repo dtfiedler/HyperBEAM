@@ -115,6 +115,8 @@ default_message() ->
         http_keepalive => 120000,
         http_request_send_timeout => 60000,
         port => 8734,
+        %% Optional Redis store URL. If set, overrides default store configuration.
+        redis_url => <<>>,
         wasm_allow_aot => false,
         %% Options for the relay device
         relay_http_client => httpc,
@@ -324,7 +326,8 @@ do_get(Key, Default, Opts) ->
                 {preparsed, ?DEFAULT_PRINT_OPTS}
             },
         lua_scripts => {"LUA_SCRIPTS", "scripts"},
-        lua_tests => {"LUA_TESTS", fun dev_lua_test:parse_spec/1, tests}
+        lua_tests => {"LUA_TESTS", fun dev_lua_test:parse_spec/1, tests},
+        redis_url => {"HB_REDIS_URL"}
     }
 ).
 

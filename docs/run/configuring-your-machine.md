@@ -36,6 +36,7 @@ These options control fundamental HyperBEAM behavior.
 | `port` | Integer | 8734 | HTTP API port |
 | `hb_config_location` | String | "config.flat" | Path to configuration file |
 | `priv_key_location` | String | "hyperbeam-key.json" | Path to operator wallet key file |
+| `redis_url` | String | N/A | Redis connection URL to use as the store |
 | `mode` | Atom | debug | Execution mode (debug, prod) |
 
 ### Server & Network Configuration
@@ -128,6 +129,8 @@ Environment variables typically use an `HB_` prefix followed by the configuratio
     *   Example: `HB_PORT=8080 rebar3 shell`
 *   **`HB_KEY=<path/to/wallet.key>`:** Overrides `hb_key`.
     *   Example: `HB_KEY=~/.keys/arweave_key.json rebar3 shell`
+*   **`HB_REDIS_URL=<redis_url>`:** Overrides `redis_url`.
+    *   Example: `HB_REDIS_URL=redis://localhost:6379 rebar3 shell`
 *   **`HB_STORE=<directory_path>`:** Overrides `hb_store`.
     *   Example: `HB_STORE=./node_data_1 rebar3 shell`
 *   **`HB_PRINT=<setting>`:** Overrides `hb_print`. `<setting>` can be `true` (or `1`), or a comma-separated list of modules/topics (e.g., `hb_path,hb_ao,ao_result`).

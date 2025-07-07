@@ -1,3 +1,4 @@
 port: 10000
 mode: debug
 cache-control: always
+% redis-url: redis://localhost:6379
