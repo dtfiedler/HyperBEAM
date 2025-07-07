@@ -165,15 +165,16 @@ HyperBEAM uses build profiles to enable optional features, often requiring extra
 *   `genesis_wasm`: Enables Genesis WebAssembly support.
 *   `rocksdb`: Enables the RocksDB storage backend.
 *   `http3`: Enables HTTP/3 support.
+*   `redis`: Enables Redis storage backend.
 
 **Example Usage:**
 
 ```bash
-# Start with RocksDB profile
-rebar3 as rocksdb shell
+# Start with Redis profile
+rebar3 as redis shell
 
-# Start with RocksDB and Genesis WASM profiles
-rebar3 as rocksdb, genesis_wasm shell
+# Start with Redis and Genesis WASM profiles
+rebar3 as redis, genesis_wasm shell
 ```
 
 *Note: Choose profiles **before** starting the shell, as they affect compile-time options.*

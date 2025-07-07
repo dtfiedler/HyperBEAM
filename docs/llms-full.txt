@@ -18557,6 +18557,13 @@ Write given Key and Value to the database
 
 --- END OF FILE: docs/resources/source-code/hb_store_rocksdb.md ---
 
+--- START OF FILE: docs/resources/source-code/hb_store_redis.md ---
+# [Module hb_store_redis.erl](https://github.com/permaweb/HyperBEAM/blob/main/src/hb_store_redis.erl)
+
+Redis-based store implementation used when the `redis` profile is enabled.
+
+--- END OF FILE: docs/resources/source-code/hb_store_redis.md ---
+
 --- START OF FILE: docs/resources/source-code/hb_store.md ---
 # [Module hb_store.erl](https://github.com/permaweb/HyperBEAM/blob/main/src/hb_store.erl)
 
@@ -20728,6 +20735,7 @@ Use the navigation menu to dive into specific parts of the codebase. Each module
 <tr><td><a href="hb_store_gateway.md" class="module">hb_store_gateway</a></td></tr>
 <tr><td><a href="hb_store_remote_node.md" class="module">hb_store_remote_node</a></td></tr>
 <tr><td><a href="hb_store_rocksdb.md" class="module">hb_store_rocksdb</a></td></tr>
+<tr><td><a href="hb_store_redis.md" class="module">hb_store_redis</a></td></tr>
 <tr><td><a href="hb_structured_fields.md" class="module">hb_structured_fields</a></td></tr>
 <tr><td><a href="hb_sup.md" class="module">hb_sup</a></td></tr>
 <tr><td><a href="hb_test_utils.md" class="module">hb_test_utils</a></td></tr>

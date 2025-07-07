@@ -105,6 +105,7 @@
 <tr><td><a href="hb_store_gateway.md" class="module">hb_store_gateway</a></td></tr>
 <tr><td><a href="hb_store_remote_node.md" class="module">hb_store_remote_node</a></td></tr>
 <tr><td><a href="hb_store_rocksdb.md" class="module">hb_store_rocksdb</a></td></tr>
+<tr><td><a href="hb_store_redis.md" class="module">hb_store_redis</a></td></tr>
 <tr><td><a href="hb_structured_fields.md" class="module">hb_structured_fields</a></td></tr>
 <tr><td><a href="hb_sup.md" class="module">hb_sup</a></td></tr>
 <tr><td><a href="hb_test_utils.md" class="module">hb_test_utils</a></td></tr>

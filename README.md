@@ -88,6 +88,7 @@ HyperBEAM supports several optional build profiles that enable additional featur
 - `genesis_wasm`: Enables Genesis WebAssembly support
 - `rocksdb`: Enables RocksDB storage backend (adds RocksDB v1.8.0 dependency)
 - `http3`: Enables HTTP/3 support via QUIC protocol
+- `redis`: Enables Redis storage backend
 
 
 Using these profiles allows you to optimize HyperBEAM for your specific use case without adding unnecessary dependencies to the base installation.
@@ -96,10 +97,10 @@ To start a shell with profiles:
 
 ```bash
 # Single profile
-rebar3 as rocksdb shell
+rebar3 as redis shell
 
 # Multiple profiles
-rebar3 as rocksdb, genesis_wasm shell
+rebar3 as redis, genesis_wasm shell
 ```
 
 To create a release with profiles:
@@ -107,6 +108,7 @@ To create a release with profiles:
 ```bash
 # Create release with profiles
 rebar3 as rocksdb,genesis_wasm release
+rebar3 as redis,genesis_wasm release
 ```
 
 Note: Profiles modify compile-time options that get baked into the release. Choose the profiles you need before starting HyperBEAM.
@@ -140,7 +142,8 @@ priv_key_location: /path/to/wallet.json
 % redis_url: redis://localhost:6379
 ```
 
-3. Start HyperBEAM with `rebar3 shell`
+3. Start HyperBEAM with `rebar3 as redis shell` if using Redis
+   (or `rebar3 shell` for the default filesystem store)
 
 HyperBEAM will automatically load your configuration and display the active
 settings in the startup log.

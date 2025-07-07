@@ -1,4 +1,4 @@
-.PHONY: compile
+.PHONY: compile redis-shell
 
 compile:
 	rebar3 compile
@@ -104,3 +104,6 @@ setup-genesis-wasm: $(GENESIS_WASM_SERVER_DIR)
 	fi
 	@cd $(GENESIS_WASM_SERVER_DIR) && npm install > /dev/null 2>&1 && \
 		echo "Installed genesis-wasm@1.0 server."
+
+redis-shell:
+	rebar3 as redis,genesis_wasm shell

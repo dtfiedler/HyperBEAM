@@ -134,6 +134,7 @@ nav:
         - hb_store_gateway: 'resources/source-code/hb_store_gateway.md'
         - hb_store_remote_node: 'resources/source-code/hb_store_remote_node.md'
         - hb_store_rocksdb: 'resources/source-code/hb_store_rocksdb.md'
+        - hb_store_redis: 'resources/source-code/hb_store_redis.md'
         - hb_store: 'resources/source-code/hb_store.md'
         - hb_structured_fields: 'resources/source-code/hb_structured_fields.md'
         - hb_sup: 'resources/source-code/hb_sup.md'
