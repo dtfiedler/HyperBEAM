@@ -170,7 +170,8 @@ default_message() ->
             #{<<"name">> => <<"secret@1.0">>, <<"module">> => dev_secret},
             #{<<"name">> => <<"wasi@1.0">>, <<"module">> => dev_wasi},
             #{<<"name">> => <<"wasm-64@1.0">>, <<"module">> => dev_wasm},
-            #{<<"name">> => <<"whois@1.0">>, <<"module">> => dev_whois}
+            #{<<"name">> => <<"whois@1.0">>, <<"module">> => dev_whois},
+            #{<<"name">> => <<"ar-io-gateway@1.0">>, <<"module">> => dev_ar_io_gateway}
         ],
         %% Default execution cache control options
         cache_control => [<<"no-cache">>, <<"no-store">>],
@@ -256,6 +257,11 @@ default_message() ->
                         <<"prefix">> => <<"https://arweave.net">>,
                         <<"opts">> => #{ http_client => gun, protocol => http2 }
                     }
+            },
+            #{
+                % Routes for the ar-io-gateway device to proxy requests to local service.
+                <<"template">> => <<"/ar-io/.*">>,
+                <<"node">> => #{ <<"prefix">> => <<"http://localhost:4000">> }
             }
         ],
         store =>

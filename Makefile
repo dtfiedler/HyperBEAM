@@ -10,6 +10,10 @@ GENESIS_WASM_BRANCH = feat/http-checkpoint
 GENESIS_WASM_REPO = https://github.com/permaweb/ao.git
 GENESIS_WASM_SERVER_DIR = _build/genesis_wasm/genesis-wasm-server
 
+AR_IO_GATEWAY_BRANCH = main # TODO: use a hash from a commit that fixes the port issue
+AR_IO_GATEWAY_REPO = https://github.com/ar-io/ar-io-node.git
+AR_IO_GATEWAY_SERVER_DIR = _build/gateway/ar-io-gateway
+
 ifdef HB_DEBUG
 	WAMR_FLAGS = -DWAMR_ENABLE_LOG=1 -DWAMR_BUILD_DUMP_CALL_STACK=1 -DCMAKE_BUILD_TYPE=Debug
 else
@@ -104,3 +108,27 @@ setup-genesis-wasm: $(GENESIS_WASM_SERVER_DIR)
 	fi
 	@cd $(GENESIS_WASM_SERVER_DIR) && npm install > /dev/null 2>&1 && \
 		echo "Installed genesis-wasm@1.0 server."
+
+$(AR_IO_GATEWAY_SERVER_DIR):
+	mkdir -p $(AR_IO_GATEWAY_SERVER_DIR)
+	@echo "Cloning ar-io-gateway repository..." && \
+        tmp_dir=$$(mktemp -d) && \
+        git clone --depth=1 -b $(AR_IO_GATEWAY_BRANCH) $(AR_IO_GATEWAY_REPO) $$tmp_dir && \
+        mkdir -p $(AR_IO_GATEWAY_SERVER_DIR) && \
+        cp -r $$tmp_dir/* $(AR_IO_GATEWAY_SERVER_DIR) && \
+        rm -rf $$tmp_dir && \
+        echo "Extracted ar-io-gateway to $(AR_IO_GATEWAY_SERVER_DIR)"
+
+# Set up ar-io-gateway@1.0 environment
+setup-ar-io-gateway: $(AR_IO_GATEWAY_SERVER_DIR)
+	@cp native/ar-io-gateway/launch-monitored.sh $(AR_IO_GATEWAY_SERVER_DIR) && \
+	if ! command -v node > /dev/null; then \
+		echo "Error: Node.js is not installed. Please install Node.js before continuing."; \
+		echo "For Ubuntu/Debian, you can install it with:"; \
+		echo "  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && \\"; \
+		echo "  apt-get install -y nodejs=22.16.0-1nodesource1 --allow-downgrades && \\"; \
+		echo "  node -v && npm -v"; \
+		exit 1; \
+	fi
+	@cd $(AR_IO_GATEWAY_SERVER_DIR) && npm install > /dev/null 2>&1 && \
+		echo "Installed ar-io-gateway@1.0 server."

@@ -125,9 +125,49 @@ start_mainnet(Opts) ->
             BaseOpts#{
                 store => #{ <<"store-module">> => hb_store_fs, <<"name">> => <<"cache-mainnet">> },
                 priv_wallet => Wallet,
-                name_resolvers => [
-                    dev_arns_resolver:resolver(<<"https://arweave.net">>)
-                ]
+                name_resolvers => 
+                    case hb_features:ar_io_gateway() of
+                        true ->
+                            % Use local AR.IO gateway first, with remote fallback
+                            Resolvers = [
+                                #{
+                                    <<"device">> => #{
+                                        <<"lookup">> => fun(_, Req, Opts) ->
+                                            Name = hb_ao:get(<<"key">>, Req, Opts),
+                                            case Name of
+                                                not_found -> {error, invalid_request};
+                                                NameBin when is_binary(NameBin) ->
+                                                    case hb_ao:resolve(
+                                                        #{<<"device">> => <<"ar-io-gateway@1.0">>},
+                                                        #{<<"path">> => <<"resolver">>, <<"name">> => NameBin},
+                                                        Opts
+                                                    ) of
+                                                        {ok, #{<<"body">> := Body}} when is_binary(Body) ->
+                                                            % Parse JSON response to extract txId
+                                                            try
+                                                                case jsx:decode(Body, [return_maps]) of
+                                                                    #{<<"txId">> := TxId} when is_binary(TxId) ->
+                                                                        {ok, TxId};
+                                                                    _ ->
+                                                                        {error, invalid_response}
+                                                                end
+                                                            catch
+                                                                _:_ -> {error, json_decode_failed}
+                                                            end;
+                                                        {ok, _} -> {error, invalid_response_format};
+                                                        Error -> Error
+                                                    end
+                                            end
+                                        end
+                                    }
+                                }
+                            ],
+                            ?event({name_resolvers_configured, {ar_io_gateway_enabled, true}, {count, length(Resolvers)}}),
+                            Resolvers;
+                        false ->
+                            % return no resolvers
+                            [];
+                    end
             }
     ),
     
