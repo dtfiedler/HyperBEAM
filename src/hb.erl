@@ -128,60 +128,42 @@ start_mainnet(Opts) ->
                 name_resolvers => 
                     case hb_features:ar_io_gateway() of
                         true ->
-                            % Use local AR.IO gateway first, with remote fallback
+                            io:format("AR.IO Gateway feature is enabled - configuring name resolvers~n"),
+                            % Start the AR.IO gateway service automatically
+                            case dev_ar_io_gateway:start(ignore, #{}, #{}) of
+                                {ok, _} ->
+                                    io:format("AR.IO Gateway service started successfully~n");
+                                {error, already_running} ->
+                                    io:format("AR.IO Gateway service is already running~n");
+                                Error ->
+                                    io:format("Failed to start AR.IO Gateway service: ~p~n", [Error])
+                            end,
                             Resolvers = [
-                                #{
-                                    <<"device">> => #{
-                                        <<"lookup">> => fun(_, Req, Opts) ->
-                                            Name = hb_ao:get(<<"key">>, Req, Opts),
-                                            case Name of
-                                                not_found -> {error, invalid_request};
-                                                NameBin when is_binary(NameBin) ->
-                                                    case hb_ao:resolve(
-                                                        #{<<"device">> => <<"ar-io-gateway@1.0">>},
-                                                        #{<<"path">> => <<"resolver">>, <<"name">> => NameBin},
-                                                        Opts
-                                                    ) of
-                                                        {ok, #{<<"body">> := Body}} when is_binary(Body) ->
-                                                            % Parse JSON response to extract txId
-                                                            try
-                                                                case jsx:decode(Body, [return_maps]) of
-                                                                    #{<<"txId">> := TxId} when is_binary(TxId) ->
-                                                                        {ok, TxId};
-                                                                    _ ->
-                                                                        {error, invalid_response}
-                                                                end
-                                                            catch
-                                                                _:_ -> {error, json_decode_failed}
-                                                            end;
-                                                        {ok, _} -> {error, invalid_response_format};
-                                                        Error -> Error
-                                                    end
-                                            end
-                                        end
-                                    }
-                                }
+                                dev_ar_io_gateway:resolver()
                             ],
                             ?event({name_resolvers_configured, {ar_io_gateway_enabled, true}, {count, length(Resolvers)}}),
+                            io:format("Configured ~p name resolvers for AR.IO gateway~n", [length(Resolvers)]),
                             Resolvers;
                         false ->
+                            io:format("AR.IO gateway is not enabled.~n"),
                             % return no resolvers
-                            [];
+                            []
                     end
             }
     ),
-    
+
     Address =
         case hb_opts:get(address, no_address, FinalOpts) of
             no_address -> <<"[ !!! no-address !!! ]">>;
             Addr -> Addr
         end,
+    Port = hb_maps:get(port, FinalOpts, hb_opts:get(port)),
     io:format(
         "Started mainnet node with ARNS resolver at http://localhost:~p~n"
         "Operator: ~s~n",
-        [hb_maps:get(port, Opts, undefined, Opts), Address]
+        [Port, Address]
     ),
-    <<"http://localhost:", (integer_to_binary(hb_maps:get(port, Opts, undefined, Opts)))/binary>>.
+    <<"http://localhost:", (integer_to_binary(Port))/binary>>.
 
 %%% @doc Start a server with a `simple-pay@1.0' pre-processor.
 start_simple_pay() ->

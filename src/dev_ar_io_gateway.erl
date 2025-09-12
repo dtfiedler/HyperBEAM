@@ -2,7 +2,7 @@
 %%% running a node service from GitHub. This device spawns a gateway service
 %%% and exposes it internally to the Erlang VM.
 -module(dev_ar_io_gateway).
--export([info/1, info/3, start/3, stop/3, status/3, logs/3, resolver/3]).
+-export([info/1, info/3, start/3, stop/3, status/3, logs/3, resolver/3, resolver/0, resolver/1]).
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("include/hb.hrl").
 
@@ -74,37 +74,13 @@ start_gateway_async(Opts) ->
 %% @doc Stop the AR.IO gateway service
 stop(_Msg1, _Msg2, _Opts) ->
     ?event(debug_ar_io_gateway, {stop, entry, stopping_gateway}),
+    % Unregister the process if it exists
     case hb_name:lookup(<<"ar-io-gateway@1.0">>) of
         undefined ->
-            {ok, #{<<"status">> => 200, <<"body">> => <<"AR.IO gateway is not running">>}};
+            {ok, #{<<"status">> => 200, <<"body">> => <<"AR.IO gateway processes cleaned up">>}};
         Pid when is_pid(Pid) ->
             % Send stop message to the Erlang process
             Pid ! stop,
-            
-            % Also forcefully kill any remaining Node.js processes
-            try
-                NodeProcesses = os:cmd("pgrep -f 'node.*src/app.ts'"),
-                case string:tokens(NodeProcesses, "\n") of
-                    [] -> 
-                        ?event(debug_ar_io_gateway, {stop, no_node_processes_found}),
-                        ok;
-                    PIDs ->
-                        ?event(debug_ar_io_gateway, {stop, killing_node_processes, {pids, PIDs}}),
-                        lists:foreach(fun(PIDStr) ->
-                            case string:to_integer(PIDStr) of
-                                {PID, []} when is_integer(PID) ->
-                                    ?event(debug_ar_io_gateway, {stop, killing_pid, PID}),
-                                    os:cmd("kill -9 " ++ integer_to_list(PID));
-                                _ ->
-                                    ?event(debug_ar_io_gateway, {stop, invalid_pid, PIDStr})
-                            end
-                        end, PIDs)
-                end
-            catch
-                _:Error ->
-                    ?event(debug_ar_io_gateway, {stop, cleanup_error, Error})
-            end,
-            
             hb_name:unregister(<<"ar-io-gateway@1.0">>),
             {ok, #{<<"status">> => 200, <<"body">> => <<"AR.IO gateway stopped successfully">>}}
     end.
@@ -224,6 +200,67 @@ resolve_arns_name(Name, Opts) ->
             ?event(debug_ar_io_gateway, {resolver, http_exception, {error, Error}, {reason, Reason}}),
             {ok, #{<<"status">> => 503, <<"body">> => <<"AR.IO gateway connection failed">>}}
     end.
+
+%% @doc Return a resolver configuration for use with the name@1.0 device
+resolver() ->
+    resolver(#{}).
+
+resolver(_Opts) ->
+    ?event(debug_ar_io_gateway_resolver, {resolver_config_created}),
+    #{
+        <<"device">> => #{
+            <<"lookup">> => fun(_, Req, ResolverOpts) ->
+                ?event(debug_ar_io_gateway_resolver, {lookup_called, {req, Req}}),
+                Name = hb_ao:get(<<"key">>, Req, ResolverOpts),
+                ?event(debug_ar_io_gateway_resolver, {extracted_name, {name, Name}}),
+                case Name of
+                    not_found -> 
+                        ?event(debug_ar_io_gateway_resolver, {lookup_failed, name_not_found}),
+                        {error, invalid_request};
+                    NameBin when is_binary(NameBin) ->
+                        ?event(debug_ar_io_gateway_resolver, {resolving_name, {name, NameBin}}),
+                        % Ensure the AR.IO gateway is started before resolving
+                        case ensure_started(ResolverOpts) of
+                            true ->
+                                case hb_ao:resolve(
+                                    #{<<"device">> => <<"ar-io-gateway@1.0">>},
+                                    #{<<"path">> => <<"resolver">>, <<"name">> => NameBin},
+                                    ResolverOpts
+                                ) of
+                            {ok, #{<<"status">> := 200, <<"body">> := Body}} when is_binary(Body) ->
+                                ?event(debug_ar_io_gateway_resolver, {got_response_body, {body, Body}}),
+                                try
+                                    case jsx:decode(Body, [return_maps]) of
+                                        #{<<"txId">> := TxId} when is_binary(TxId) ->
+                                            ?event(debug_ar_io_gateway_resolver, {extracted_txid, {txid, TxId}}),
+                                            {ok, TxId};
+                                        DecodedBody ->
+                                            ?event(debug_ar_io_gateway_resolver, {invalid_json_structure, {decoded, DecodedBody}}),
+                                            {error, invalid_response}
+                                    end
+                                catch
+                                    _:JsonError -> 
+                                        ?event(debug_ar_io_gateway_resolver, {json_decode_error, {error, JsonError}, {body, Body}}),
+                                        {error, json_decode_failed}
+                                end;
+                            {ok, #{<<"status">> := Status, <<"body">> := Body}} ->
+                                ?event(debug_ar_io_gateway_resolver, {non_200_response, {status, Status}, {body, Body}}),
+                                {error, {http_error, Status}};
+                            {ok, Response} -> 
+                                ?event(debug_ar_io_gateway_resolver, {invalid_response_format, {response, Response}}),
+                                {error, invalid_response_format};
+                                    Error -> 
+                                        ?event(debug_ar_io_gateway_resolver, {resolve_error, {error, Error}}),
+                                        Error
+                                end;
+                            false ->
+                                ?event(debug_ar_io_gateway_resolver, {gateway_not_started}),
+                                {error, gateway_not_available}
+                        end
+                end
+            end
+        }
+    }.
 
 %% @doc Ensure the local `ar-io-gateway@1.0' is live. If it not, start it.
 ensure_started(Opts) ->
