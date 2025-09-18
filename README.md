@@ -86,6 +86,7 @@ all devices and sets up default stores on port 10000.
 HyperBEAM supports several optional build profiles that enable additional features:
 
 - `genesis_wasm`: Enables Genesis WebAssembly support
+- `gateway`: Enables AR.IO Gateway support (adds Ar.io Gateway dependency and supports resolving ARNS names to transaction IDs)
 - `rocksdb`: Enables RocksDB storage backend (adds RocksDB v1.8.0 dependency)
 - `http3`: Enables HTTP/3 support via QUIC protocol
 
@@ -110,6 +111,23 @@ rebar3 as rocksdb,genesis_wasm release
 ```
 
 Note: Profiles modify compile-time options that get baked into the release. Choose the profiles you need before starting HyperBEAM.
+
+### Running the AR.IO Gateway Device
+
+To run HyperBEAM with AR.IO Gateway support for ArNS name resolution:
+
+```bash
+# For normal gateway operations only
+rebar3 as gateway shell
+
+# For ArNS resolution with ~names@1.0 device and local genesis-wasm support
+rebar3 as gateway,genesis_wasm shell
+```
+
+This configuration enables:
+- ArNS name resolution via the `~names@1.0` device
+- AR.IO Gateway integration for resolving ArNS names to transaction IDs
+- Local Genesis WebAssembly support (when using the combined profile)
 
 ### Verify Installation
 
