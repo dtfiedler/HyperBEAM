@@ -32,6 +32,7 @@ native/hb_beamr/*.o
 native/hb_beamr/*.d
 
 priv/*
+!priv/gateway_boot.escript
 .DS_STORE
 cache-*
 
