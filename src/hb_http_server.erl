@@ -60,7 +60,14 @@ start() ->
             priv_wallet => PrivWallet,
             store => UpdatedStoreOpts,
             port => hb_opts:get(port, 8734, Loaded),
-            cache_writers => [hb_util:human_id(ar_wallet:to_address(PrivWallet))]
+            cache_writers => [hb_util:human_id(ar_wallet:to_address(PrivWallet))],
+            name_resolvers =>
+                case hb_features:ar_io_gateway() of
+                    true ->
+                        [dev_ar_io_gateway:resolver()];
+                    false ->
+                        []
+                end
         }
     ).
 start(Opts) ->

@@ -338,7 +338,7 @@ ensure_started(Opts) ->
                         DataDir = filename:absname(RelativeDataDir),
                         ?event({ar_io_gateway_creating_data_dir, DataDir}),
                         filelib:ensure_path(DataDir),
-                        
+                        DelegatedComputeURL = hb_features:genesis_wasm() ? "http://localhost:6363" : "https://cu.ardrive.io",
                         io:format("AR.IO Gateway: About to start npm in ~s~n", [GatewayServerDir]),
                         ?event({ar_io_gateway_starting_npm, {cwd, GatewayServerDir}}),
                         Port =
@@ -373,8 +373,8 @@ ensure_started(Opts) ->
                                             },
                                             {"START_HEIGHT", "0"},
                                             {"START_WRITERS", "false"},
-                                            {"ANT_AO_CU_URL", "https://cu.ardrive.io"},
-                                            {"NETWORK_AO_CU_URL", "https://cu.ardrive.io"},
+                                            {"ANT_AO_CU_URL", DelegatedComputeURL},
+                                            {"NETWORK_AO_CU_URL", DelegatedComputeURL},
                                             {"LOG_LEVEL", "debug"},
                                             {"DATA_DIR", DataDir},
                                             {"ARWEAVE_GATEWAY",
