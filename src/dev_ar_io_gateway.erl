@@ -361,7 +361,7 @@ ensure_started(Opts) ->
                                     {args, Args = [
                                         "sh",
                                         "-c",
-                                        "npm run db:migrate up && npm run start:prod"
+                                        "npm run db:migrate up && npm run start"
                                     ]},
                                     {env,
                                         Env = [
