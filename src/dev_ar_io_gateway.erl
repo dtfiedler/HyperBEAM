@@ -381,6 +381,8 @@ ensure_started(Opts) ->
                                             {"NETWORK_AO_CU_URL", DelegatedComputeURL},
                                             {"LOG_LEVEL", "debug"},
                                             {"DATA_DIR", DataDir},
+                                            {"ARNS_RESOLVER_PRIORITY_ORDER", "on-demand"},
+                                            {"ENABLE_BACKGROUND_DATA_VERIFICATION", "false"},
                                             {"ARWEAVE_GATEWAY",
                                                 hb_util:list(
                                                     hb_opts:get(
